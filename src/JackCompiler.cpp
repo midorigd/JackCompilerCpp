@@ -6,7 +6,7 @@ namespace Compiler {
 
 namespace fs = std::filesystem;
 
-const fs::path JackCompiler::DEBUG_FILE = "debug.txt";
+const fs::path JackCompiler::DEBUG_FILE { "debug.txt" };
 
 void JackCompiler::compile (const fs::path& sourceFile, bool debugMode) {
     TokenSet::init();
@@ -21,7 +21,7 @@ void JackCompiler::compile (const fs::path& sourceFile, bool debugMode) {
     if (debugMode) {
         debugFile = std::ofstream(DEBUG_FILE);
     }
-    std::ofstream* const debugPtr = (debugMode ? &debugFile : nullptr);
+    std::ofstream* const debugPtr { debugMode ? &debugFile : nullptr };
 
     for (fs::path infile : files) {
         fs::path outfile { infile };

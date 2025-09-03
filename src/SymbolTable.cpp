@@ -31,8 +31,8 @@ void SymbolTable::reset() {
 }
 
 void SymbolTable::define(const std::string& name, const std::string& type, const Segment& segment) {
-    Segment internalSegment = (segment == Segment::FIELD ? Segment::THIS : segment);
-    SymbolTable::Entry entry(type, internalSegment, counters.at(internalSegment)++);
+    Segment internalSegment { segment == Segment::FIELD ? Segment::THIS : segment };
+    SymbolTable::Entry entry { type, internalSegment, counters.at(internalSegment)++ };
     data[name] = entry;
 }
 
@@ -41,7 +41,7 @@ void SymbolTable::defineThisObject(const std::string& type) {
 }
 
 int SymbolTable::varCount(const Segment& segment) const {
-    Segment internalSegment = (segment == Segment::FIELD ? Segment::THIS : segment);
+    Segment internalSegment { segment == Segment::FIELD ? Segment::THIS : segment };
     return counters.at(internalSegment);
 }
 

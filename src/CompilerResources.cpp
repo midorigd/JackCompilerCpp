@@ -249,7 +249,8 @@ std::string reqToString(const TokenReq& req) {
         return typeToStr.at(std::get<TokenType>(req));
     }
 
-    TokenVal val = std::get<TokenVal>(req);
+    TokenVal val { std::get<TokenVal>(req) };
+
     if (std::holds_alternative<Keyword>(val)) {
         return keywordToStr.at(std::get<Keyword>(val));
     } else if (std::holds_alternative<Symbol>(val)) {

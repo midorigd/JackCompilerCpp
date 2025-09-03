@@ -49,7 +49,7 @@ void CompilationEngine::compileClass() {
 }
 
 void CompilationEngine::handleInvalidToken(const Token& token, const TokenReq& req, const std::string* customReqName) {
-    std::string reqName = (customReqName ? *customReqName : reqToString(req));
+    std::string reqName { customReqName ? *customReqName : reqToString(req) };
 
     if (std::holds_alternative<TokenVal>(req)) {
         throw TokenError(reqToString(token.val), reqName);
@@ -75,7 +75,7 @@ bool CompilationEngine::compareToken(const Token& token, const TokenReq& req) co
 }
 
 TokenVal CompilationEngine::process(const TokenReq& req) {
-    Token token = tokenizer.advance();
+    Token token { tokenizer.advance() };
     if (compareToken(token, req)) {
         return token.val;
     }
@@ -173,8 +173,8 @@ const SymbolTable* CompilationEngine::getVarScope(const std::string& name) const
 
 // ( 'static' | 'field' ) type varName ( ',' varName )* ';'
 void CompilationEngine::compileClassVarDec() {
-    Segment symbolSegment = keywordToSegment( processKeyword() );
-    std::string symbolType = reqToString( verifyVarType() );
+    Segment symbolSegment { keywordToSegment( processKeyword() ) };
+    std::string symbolType { reqToString( verifyVarType() ) };
 
     while (true) {
         compileVarName(symbolType, symbolSegment, classSymbols);
@@ -186,9 +186,9 @@ void CompilationEngine::compileClassVarDec() {
 
 // ( 'constructor' | 'function' | 'method' ) ( 'void' | type ) subroutineName '(' parameterList ')' subroutineBody
 void CompilationEngine::compileSubroutine() {
-    Keyword subroutineType = processKeyword();
+    Keyword subroutineType { processKeyword() };
     verifyReturnType();
-    std::string subroutineName = compileName();
+    std::string subroutineName { compileName() };
 
     methodSymbols.reset();
     // methods take this object as implicit first argument
@@ -206,7 +206,7 @@ void CompilationEngine::compileSubroutine() {
 void CompilationEngine::compileParameterList() {
     if (nextTokenIs(Symbol::PAREN_R)) { return; }
     while (true) {
-        std::string symbolType = reqToString( verifyVarType() );
+        std::string symbolType { reqToString( verifyVarType() ) };
         compileVarName(symbolType, Segment::ARG, methodSymbols);
         if (!nextTokenIs(Symbol::COMMA)) { break; }
         process(Symbol::COMMA);
@@ -225,7 +225,7 @@ void CompilationEngine::compileSubroutineBody(const std::string& name, const Key
 // 'var' type varName ( ',' varName )* ';'
 void CompilationEngine::compileVarDec() {
     process(Keyword::VAR);
-    std::string symbolType = reqToString( verifyVarType() );
+    std::string symbolType { reqToString( verifyVarType() ) };
     while (true) {
         compileVarName(symbolType, Segment::LOCAL, methodSymbols);
         if (!nextTokenIs(Symbol::COMMA)) { break; }
@@ -240,32 +240,33 @@ method: pop this address (first arg) to THIS ptr
 function: no extra setup
 */
 void CompilationEngine::compileFunctionHeader(const std::string& name, const Keyword& type) {
-    std::string functionName = currClassName + '.' + name;
-    int nVars = methodSymbols.varCount(Segment::LOCAL);
+    std::string functionName { currClassName + '.' + name };
+    int nVars { methodSymbols.varCount(Segment::LOCAL) };
     writer.writeFunction(functionName, nVars);
 
     if (type == Keyword::CONSTRUCTOR) {
-        int nFields = classSymbols.varCount(Segment::THIS);
+        int nFields { classSymbols.varCount(Segment::THIS) };
         writer.writeConstant(nFields);
         writer.writeCall(MEMORY_ALLOC, 1);
         writer.writePopThisPtr();
     } else if (type == Keyword::METHOD) {
-        const SymbolTable::Entry* entryPtr = methodSymbols.getEntry(+Keyword::THIS);
-        Segment thisSegment = entryPtr->segment;
-        int thisIndex = entryPtr->index;
+        const SymbolTable::Entry* entryPtr { methodSymbols.getEntry(+Keyword::THIS) };
+        Segment thisSegment { entryPtr->segment };
+        int thisIndex { entryPtr->index };
+
         writer.writePush(thisSegment, thisIndex);
         writer.writePopThisPtr();
     }
 }
 
 std::string CompilationEngine::compileVarName(const std::string& type, const Segment& segment, SymbolTable& symbolTable) {
-    std::string name = processIdentifier();
+    std::string name { processIdentifier() };
     symbolTable.define(name, type, segment);
     return name;
 }
 
 const SymbolTable::Entry* CompilationEngine::compileVarName() {
-    std::string name = processIdentifier();
+    std::string name { processIdentifier() };
     if (const SymbolTable* symbolTable = getVarScope(name)) {
         return symbolTable->getEntry(name);
     }
@@ -286,14 +287,14 @@ void CompilationEngine::compileSubroutineCall() {
     external func (className):  className is provided; no extra setup
     */
 
-    std::string className = currClassName;
-    int nArgs = 1;
+    std::string className { currClassName };
+    int nArgs { 1 };
 
     if (compareToken(tokenizer.peekSecond(), Symbol::DOT)) {
-        std::string symbolName = std::get<std::string>( tokenizer.nextToken().val );
+        std::string symbolName { std::get<std::string>( tokenizer.nextToken().val ) };
 
         if (getVarScope(symbolName)) {
-            const SymbolTable::Entry* entryPtr = compileVarName();
+            const SymbolTable::Entry* entryPtr { compileVarName() };
             writer.writePush(entryPtr->segment, entryPtr->index);
             className = entryPtr->type;
         } else {
@@ -307,12 +308,12 @@ void CompilationEngine::compileSubroutineCall() {
         writer.writePushThisPtr();
     }
 
-    std::string subroutineName = compileName();
+    std::string subroutineName { compileName() };
     process(Symbol::PAREN_L);
     nArgs += compileExpressionList();
     process(Symbol::PAREN_R);
 
-    std::string functionName = className + '.' + subroutineName;
+    std::string functionName { className + '.' + subroutineName };
     writer.writeCall(functionName, nArgs);
 }
 
@@ -332,7 +333,7 @@ void CompilationEngine::compileStatements() {
 // 'let' varName ( '[' expression ']' )? '=' expression ';'
 void CompilationEngine::compileLet() {
     process(Keyword::LET);
-    const SymbolTable::Entry* entryPtr = compileVarName();
+    const SymbolTable::Entry* entryPtr { compileVarName() };
 
     if (nextTokenIs(Symbol::SQRBRACK_L)) {
         writer.writePush(entryPtr->segment, entryPtr->index);
@@ -362,7 +363,7 @@ void CompilationEngine::compileLet() {
 
 // 'if' '(' expression ')' '{' statements '}' ( 'else' '{' statements '}' )?
 void CompilationEngine::compileIf() {
-    auto [ifLabel, gotoLabel] = getLabelPair();
+    auto [ifLabel, gotoLabel] { getLabelPair() };
 
     process(Keyword::IF);
     process(Symbol::PAREN_L);
@@ -391,7 +392,7 @@ void CompilationEngine::compileIf() {
 
 // 'while' '(' expression ')' '{' statements '}'
 void CompilationEngine::compileWhile() {
-    auto [loopLabel, exitLabel] = getLabelPair();
+    auto [loopLabel, exitLabel] { getLabelPair() };
 
     process(Keyword::WHILE);
 
@@ -440,7 +441,7 @@ void CompilationEngine::compileExpression() {
     compileTerm();
 
     while (nextTokenIsOneOf(TokenSet::OPERATORS)) {
-        Symbol op = processSymbol();
+        Symbol op { processSymbol() };
         compileTerm();
 
         if (commandLookup.find(op) != commandLookup.end()) {
@@ -468,18 +469,18 @@ void CompilationEngine::compileTerm() {
         compileExpression();
         process(Symbol::PAREN_R);
     } else if (nextTokenIsOneOf(TokenSet::UNARY_OPS)) {
-        Command op = (processSymbol() == Symbol::MINUS ? Command::NEG : Command::NOT);
+        Command op { processSymbol() == Symbol::MINUS ? Command::NEG : Command::NOT };
         compileTerm();
         writer.writeArithmetic(op);
     } else {
-        std::string reqName = "term";
+        std::string reqName { "term" };
         handleInvalidToken(tokenizer.nextToken(), TokenType::IDENTIFIER, &reqName);
     }
 }
 
 // ( expression ( ',' expression )* )?
 int CompilationEngine::compileExpressionList() {
-    int count = 0;
+    int count { 0 };
 
     if (!nextTokenIs(Symbol::PAREN_R)) {
         while (true) {
@@ -494,7 +495,7 @@ int CompilationEngine::compileExpressionList() {
 }
 
 void CompilationEngine::compileStrConstTerm() {
-    std::string str = processStringConst();
+    std::string str { processStringConst() };
 
     writer.writeConstant(str.length());
     writer.writeCall(STRING_NEW, 1);
@@ -525,7 +526,7 @@ void CompilationEngine::compileIdentifierTerm() {
     if (termIsSubroutineCall()) {
         compileSubroutineCall();
     } else {
-        const SymbolTable::Entry* entryPtr = compileVarName();
+        const SymbolTable::Entry* entryPtr { compileVarName() };
         writer.writePush(entryPtr->segment, entryPtr->index);
 
         if (termIsArrayExp()) {

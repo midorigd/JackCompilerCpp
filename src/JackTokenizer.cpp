@@ -62,7 +62,7 @@ TokenType JackTokenizer::getTokenType(const std::string& tokenVal) {
 
 Token JackTokenizer::tokenize(const std::string &tokenVal) {
     Token token;
-    TokenType tokenType = getTokenType(tokenVal);
+    TokenType tokenType { getTokenType(tokenVal) };
     token.type = tokenType;
 
     switch (tokenType) {
@@ -89,7 +89,7 @@ Token JackTokenizer::tokenize(const std::string &tokenVal) {
 void JackTokenizer::matchTokens() {
     removeComments(data);
     for (std::sregex_iterator it(data.begin(), data.end(), tokenPattern), end; it != end; ++it) {
-        std::smatch match = *it;
+        std::smatch match { *it };
         tokens.push_back(tokenize(match.str())); // tokenize return value out of scope??
     }
 }
