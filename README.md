@@ -44,6 +44,10 @@ bin/JackCompiler <dirname OR filename.vm> [-d]
 
 My Python implementation of this project: [JackCompiler (Python)](https://github.com/midorigd/JackCompilerPython)
 
+### Stats
+
+1786 lines (1449 loc)
+
 ## References
 
 [nand2tetris](https://www.nand2tetris.org/course)
