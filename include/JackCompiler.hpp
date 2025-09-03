@@ -11,6 +11,9 @@ namespace fs = std::filesystem;
 
 class JackCompiler {
 public:
+    /**
+     * Compiles all Jack files found in the provided source path into a corresponding VM file.
+     */
     void compile(const fs::path& sourceFile, bool debugMode);
 
 private:

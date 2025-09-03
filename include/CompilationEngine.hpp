@@ -19,8 +19,10 @@ namespace fs = std::filesystem;
 
 class CompilationEngine {
 public:
+    /**
+     * Creates a new CompilationEngine module, compiles the provided infile into VM commands and writes them to the provided outfile.
+     */
     CompilationEngine(const fs::path& infile, const fs::path& outfile, std::ofstream* const debugFile);
-    void compileClass();
 
 private:
     static const std::string MATH_MULTIPLY;
@@ -71,6 +73,7 @@ private:
 
     const SymbolTable* getVarScope(const std::string& name) const;
 
+    void compileClass();
     void compileClassVarDec();
     void compileSubroutine();
     void compileParameterList();

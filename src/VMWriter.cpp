@@ -5,10 +5,6 @@ namespace Compiler {
 
 namespace fs = std::filesystem;
 
-VMWriter::~VMWriter() {
-    outfile.close();
-}
-
 void VMWriter::writePush(const Segment& segment, const int index) {
     outfile << "\tpush " << segment << ' ' << index << '\n';
 }

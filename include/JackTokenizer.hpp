@@ -13,10 +13,29 @@ namespace fs = std::filesystem;
 
 class JackTokenizer {
 public:
+    /**
+     * Creates a new JackTokenizer module to read tokens from the provided file.
+     */
     JackTokenizer(const fs::path& infilePath);
+
+    /**
+     * Peeks the next token from input without advancing to it and processing the token.
+     */
     const Token& nextToken() const;
+
+    /**
+     * Returns whether or not there are more tokens in input to read and process.
+     */
     bool hasMoreTokens() const;
+
+    /**
+     * Reads the next token from input and processes it.
+     */
     const Token& advance();
+
+    /**
+     * Peeks the second token from input without modifying the current state of the token stream.
+     */
     const Token& peekSecond() const;
 
 private:
